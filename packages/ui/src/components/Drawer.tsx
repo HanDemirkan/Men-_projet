@@ -41,23 +41,29 @@ const drawerContentVariants = cva("fixed z-50 flex flex-col gap-4 bg-background 
 });
 
 export interface DrawerContentProps
-  extends ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
+  extends
+    ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
     VariantProps<typeof drawerContentVariants> {}
 
-export const DrawerContent = forwardRef<ElementRef<typeof DialogPrimitive.Content>, DrawerContentProps>(
-  ({ className, side, children, ...props }, ref) => (
-    <DialogPrimitive.Portal>
-      <DrawerOverlay />
-      <DialogPrimitive.Content ref={ref} className={cn(drawerContentVariants({ side }), className)} {...props}>
-        {children}
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <X className="h-4 w-4" aria-hidden="true" />
-          <span className="sr-only">Kapat</span>
-        </DialogPrimitive.Close>
-      </DialogPrimitive.Content>
-    </DialogPrimitive.Portal>
-  ),
-);
+export const DrawerContent = forwardRef<
+  ElementRef<typeof DialogPrimitive.Content>,
+  DrawerContentProps
+>(({ className, side, children, ...props }, ref) => (
+  <DialogPrimitive.Portal>
+    <DrawerOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(drawerContentVariants({ side }), className)}
+      {...props}
+    >
+      {children}
+      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <X className="h-4 w-4" aria-hidden="true" />
+        <span className="sr-only">Kapat</span>
+      </DialogPrimitive.Close>
+    </DialogPrimitive.Content>
+  </DialogPrimitive.Portal>
+));
 DrawerContent.displayName = "DrawerContent";
 
 export const DrawerTitle = DialogPrimitive.Title;

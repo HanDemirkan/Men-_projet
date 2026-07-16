@@ -21,7 +21,13 @@ function isActive(itemHref: string, activePath: string): boolean {
 // fixed positioning) so `PanelLayout` can render the exact same markup both
 // in the persistent desktop `Sidebar` and inside the mobile `Drawer` -
 // avoiding two hand-maintained copies of the navigation.
-export function SidebarNav({ sections, activePath, linkComponent, onNavigate, className }: SidebarNavProps) {
+export function SidebarNav({
+  sections,
+  activePath,
+  linkComponent,
+  onNavigate,
+  className,
+}: SidebarNavProps) {
   const Anchor = linkComponent;
 
   return (
@@ -48,7 +54,10 @@ export function SidebarNav({ sections, activePath, linkComponent, onNavigate, cl
                 <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span className="flex-1 truncate">{item.label}</span>
                 {item.badge ? (
-                  <Badge variant={active ? "default" : "secondary"} className="px-1.5 py-0 text-[10px]">
+                  <Badge
+                    variant={active ? "default" : "secondary"}
+                    className="px-1.5 py-0 text-[10px]"
+                  >
                     {item.badge}
                   </Badge>
                 ) : null}
@@ -56,11 +65,21 @@ export function SidebarNav({ sections, activePath, linkComponent, onNavigate, cl
             );
 
             return Anchor ? (
-              <Anchor key={item.href} href={item.href} onClick={onNavigate} aria-current={active ? "page" : undefined}>
+              <Anchor
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                aria-current={active ? "page" : undefined}
+              >
                 {content}
               </Anchor>
             ) : (
-              <a key={item.href} href={item.href} onClick={onNavigate} aria-current={active ? "page" : undefined}>
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                aria-current={active ? "page" : undefined}
+              >
                 {content}
               </a>
             );

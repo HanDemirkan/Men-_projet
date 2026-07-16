@@ -35,8 +35,7 @@ export const buttonVariants = cva(
 export type ButtonVariant = NonNullable<VariantProps<typeof buttonVariants>["variant"]>;
 
 export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   isLoading?: boolean;
 }
@@ -46,10 +45,20 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     { className, variant, size, asChild = false, isLoading = false, disabled, children, ...props },
     ref,
   ) => {
-    const Comp = asChild ? Slot : "button";
+    // `Slot` (used when `asChild`) requires exactly one React element child
+    // to merge props onto - so the loading spinner can only be injected in
+    // the plain `<button>` case. `asChild` call sites (e.g. `<Button asChild
+    // isLoading={false}><Link>...</Link></Button>`) don't use `isLoading`.
+    if (asChild) {
+      return (
+        <Slot ref={ref} className={cn(buttonVariants({ variant, size }), className)} {...props}>
+          {children}
+        </Slot>
+      );
+    }
 
     return (
-      <Comp
+      <button
         ref={ref}
         className={cn(buttonVariants({ variant, size }), className)}
         disabled={disabled || isLoading}
@@ -58,7 +67,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
         {children}
-      </Comp>
+      </button>
     );
   },
 );

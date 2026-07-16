@@ -14,7 +14,9 @@ export interface PaginationProps {
 // Builds a compact page list with ellipses, e.g. [1, "...", 4, 5, 6, "...", 20].
 function buildPageList(page: number, pageCount: number): Array<number | "ellipsis"> {
   const pages = new Set<number>([1, pageCount, page, page - 1, page + 1]);
-  const sorted = [...pages].filter((candidate) => candidate >= 1 && candidate <= pageCount).sort((a, b) => a - b);
+  const sorted = [...pages]
+    .filter((candidate) => candidate >= 1 && candidate <= pageCount)
+    .sort((a, b) => a - b);
 
   const result: Array<number | "ellipsis"> = [];
   sorted.forEach((current, index) => {

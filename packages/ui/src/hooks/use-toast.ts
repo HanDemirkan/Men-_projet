@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
@@ -40,7 +42,11 @@ export function dismissToast(id: string): void {
   emit();
 }
 
-export function useToast(): { toasts: ToastItem[]; toast: typeof toast; dismiss: typeof dismissToast } {
+export function useToast(): {
+  toasts: ToastItem[];
+  toast: typeof toast;
+  dismiss: typeof dismissToast;
+} {
   const [state, setState] = useState(toasts);
 
   useEffect(() => {

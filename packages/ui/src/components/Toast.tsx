@@ -39,11 +39,18 @@ const toastVariants = cva(
   },
 );
 
-export interface ToastProps extends ComponentPropsWithoutRef<typeof ToastPrimitive.Root>, VariantProps<typeof toastVariants> {}
+export interface ToastProps
+  extends
+    ComponentPropsWithoutRef<typeof ToastPrimitive.Root>,
+    VariantProps<typeof toastVariants> {}
 
 export const ToastRoot = forwardRef<ElementRef<typeof ToastPrimitive.Root>, ToastProps>(
   ({ className, variant, ...props }, ref) => (
-    <ToastPrimitive.Root ref={ref} className={cn(toastVariants({ variant }), className)} {...props} />
+    <ToastPrimitive.Root
+      ref={ref}
+      className={cn(toastVariants({ variant }), className)}
+      {...props}
+    />
   ),
 );
 ToastRoot.displayName = ToastPrimitive.Root.displayName;
@@ -93,6 +100,10 @@ export const ToastDescription = forwardRef<
   ElementRef<typeof ToastPrimitive.Description>,
   ComponentPropsWithoutRef<typeof ToastPrimitive.Description>
 >(({ className, ...props }, ref) => (
-  <ToastPrimitive.Description ref={ref} className={cn("text-sm opacity-90", className)} {...props} />
+  <ToastPrimitive.Description
+    ref={ref}
+    className={cn("text-sm opacity-90", className)}
+    {...props}
+  />
 ));
 ToastDescription.displayName = ToastPrimitive.Description.displayName;

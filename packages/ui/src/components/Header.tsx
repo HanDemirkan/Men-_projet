@@ -21,7 +21,13 @@ export function Header({ onMenuClick, breadcrumb, actions, className }: HeaderPr
       )}
     >
       {onMenuClick ? (
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick} aria-label="Menüyü aç">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden"
+          onClick={onMenuClick}
+          aria-label="Menüyü aç"
+        >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </Button>
       ) : null}

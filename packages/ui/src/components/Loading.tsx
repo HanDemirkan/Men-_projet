@@ -16,9 +16,19 @@ const SIZE_CLASSES: Record<NonNullable<LoadingProps["size"]>, string> = {
 
 export function Loading({ label, size = "md", className }: LoadingProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-2 text-muted-foreground", className)} role="status">
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-2 text-muted-foreground",
+        className,
+      )}
+      role="status"
+    >
       <Loader2 className={cn("animate-spin", SIZE_CLASSES[size])} aria-hidden="true" />
-      {label ? <span className="text-sm">{label}</span> : <span className="sr-only">Yükleniyor</span>}
+      {label ? (
+        <span className="text-sm">{label}</span>
+      ) : (
+        <span className="sr-only">Yükleniyor</span>
+      )}
     </div>
   );
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import { Eye, EyeOff } from "lucide-react";
 import { forwardRef, useState } from "react";
 
@@ -12,7 +14,12 @@ export const PasswordInput = forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div className="relative">
-        <Input ref={ref} type={visible ? "text" : "password"} className={cn("pr-10", className)} {...props} />
+        <Input
+          ref={ref}
+          type={visible ? "text" : "password"}
+          className={cn("pr-10", className)}
+          {...props}
+        />
         <button
           type="button"
           onClick={() => setVisible((current) => !current)}
@@ -20,7 +27,11 @@ export const PasswordInput = forwardRef<HTMLInputElement, InputProps>(
           aria-label={visible ? "Şifreyi gizle" : "Şifreyi göster"}
           tabIndex={-1}
         >
-          {visible ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+          {visible ? (
+            <EyeOff className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <Eye className="h-4 w-4" aria-hidden="true" />
+          )}
         </button>
       </div>
     );

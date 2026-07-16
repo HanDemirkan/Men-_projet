@@ -38,7 +38,10 @@ export function Logo({ size = "md", iconOnly = false, className }: LogoProps) {
         <QrCode className={ICON_SIZE_CLASSES[size]} aria-hidden="true" />
       </span>
       {iconOnly ? null : (
-        <span className={cn("font-semibold tracking-tight text-foreground", TEXT_SIZE_CLASSES[size])}>
+        // Color intentionally inherited (not `text-foreground`), so a
+        // wrapper can recolor the wordmark for dark surfaces (e.g.
+        // AuthLayout's brand panel) without an arbitrary-selector hack.
+        <span className={cn("font-semibold tracking-tight", TEXT_SIZE_CLASSES[size])}>
           QR Platform
         </span>
       )}

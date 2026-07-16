@@ -23,7 +23,9 @@ export function Breadcrumb({ items, linkComponent: LinkComponent, className }: B
 
           return (
             <li key={`${item.label}-${index}`} className="flex items-center gap-1.5">
-              {index > 0 ? <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" /> : null}
+              {index > 0 ? (
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+              ) : null}
               {item.href && !isLast ? (
                 LinkComponent ? (
                   <LinkComponent href={item.href}>
@@ -32,7 +34,10 @@ export function Breadcrumb({ items, linkComponent: LinkComponent, className }: B
                     </span>
                   </LinkComponent>
                 ) : (
-                  <a href={item.href} className="text-muted-foreground transition-colors hover:text-foreground">
+                  <a
+                    href={item.href}
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
                     {item.label}
                   </a>
                 )

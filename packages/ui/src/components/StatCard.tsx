@@ -31,7 +31,9 @@ export function StatCard({ label, value, icon: Icon, trend, className, ...props 
       <div className="flex items-baseline gap-2">
         <span className="text-2xl font-semibold tracking-tight text-foreground">{value}</span>
         {trend ? (
-          <span className={cn("text-xs font-medium", TREND_CLASSES[trend.direction])}>{trend.value}</span>
+          <span className={cn("text-xs font-medium", TREND_CLASSES[trend.direction])}>
+            {trend.value}
+          </span>
         ) : null}
       </div>
     </Card>
