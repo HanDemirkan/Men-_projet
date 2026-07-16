@@ -1,0 +1,24 @@
+// Sprint 0: no product tables yet. This schema only establishes the Prisma
+// + PostgreSQL wiring and migration pipeline. Tenant-aware tables are added
+// starting Sprint 1 (see docs/decisions/0004-shared-database-multi-tenancy.md).
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// `prisma generate` refuses to produce a client with zero models, so a single
+// non-product, technical placeholder model exists purely to keep the Prisma
+// Client generation and migration pipeline functional end to end. It is not a
+// product/feature table and carries no business meaning.
+model SchemaBootstrap {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  @@map("_schema_bootstrap")
+}

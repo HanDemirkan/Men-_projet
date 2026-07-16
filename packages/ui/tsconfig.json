@@ -1,0 +1,7 @@
+{
+  "extends": "@qr-platform/config/typescript/react-library",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "@qr-platform/config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "exports": {
+    "./typescript/base": "./typescript/base.json",
+    "./typescript/nestjs": "./typescript/nestjs.json",
+    "./typescript/nextjs": "./typescript/nextjs.json",
+    "./typescript/react-library": "./typescript/react-library.json",
+    "./eslint/base": "./eslint-base.js",
+    "./prettier": "./prettier.js"
+  },
+  "files": [
+    "typescript",
+    "eslint-base.js",
+    "prettier.js"
+  ],
+  "dependencies": {
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "typescript-eslint": "^8.18.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
