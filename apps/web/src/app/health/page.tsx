@@ -1,4 +1,5 @@
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "@qr-platform/ui";
+
 import { HealthStatusPanel } from "@/features/health/HealthStatusPanel";
 
 export default function HealthPage() {
