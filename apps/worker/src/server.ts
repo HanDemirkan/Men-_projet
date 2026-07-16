@@ -35,7 +35,11 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
 // (`/health/live`) and reach its dependencies (`/health/ready`). `/health`
 // is kept as a combined status for backward compatibility. No job queue
 // exists in Sprint 0 - this is purely operational, not a feature surface.
-export function createHealthServer(prisma: PrismaClient, redis: Redis, logger: pino.Logger): Server {
+export function createHealthServer(
+  prisma: PrismaClient,
+  redis: Redis,
+  logger: pino.Logger,
+): Server {
   return createServer((req, res) => {
     if (req.method !== "GET") {
       sendJson(res, 404, { success: false, error: { code: "NOT_FOUND" } });

@@ -27,12 +27,12 @@ postgresql.org'daki installer PostgreSQL'i bir Windows servisi olarak kurar (bu 
 
 ## Migration komutları
 
-| Komut                    | Ne zaman kullanılır                                                                |
-| ------------------------ | ------------------------------------------------------------------------------------ |
-| `pnpm db:generate`       | Prisma Client'ı `schema.prisma`'dan yeniden üretir (kod değişikliğinden sonra)      |
-| `pnpm db:migrate`        | **Yerel geliştirme**: yeni migration oluşturur ve etkileşimli olarak uygular         |
+| Komut                    | Ne zaman kullanılır                                                                                        |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `pnpm db:generate`       | Prisma Client'ı `schema.prisma`'dan yeniden üretir (kod değişikliğinden sonra)                             |
+| `pnpm db:migrate`        | **Yerel geliştirme**: yeni migration oluşturur ve etkileşimli olarak uygular                               |
 | `pnpm db:migrate:deploy` | **Production/CI**: yalnızca var olan migration'ları etkileşimsiz olarak uygular; yeni migration oluşturmaz |
-| `pnpm db:studio`         | Prisma Studio'yu açar                                                               |
+| `pnpm db:studio`         | Prisma Studio'yu açar                                                                                      |
 
 ## Production migration akışı
 

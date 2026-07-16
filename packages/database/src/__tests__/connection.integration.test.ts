@@ -2,9 +2,9 @@ import { afterAll, describe, expect, it } from "vitest";
 
 import { prisma } from "../index";
 
-// This test only runs when a real PostgreSQL instance is reachable
-// (e.g. via `docker compose up postgres` or CI service containers).
-// It is skipped by default so `pnpm test` works without Docker running.
+// This test only runs when a real PostgreSQL instance is reachable (a local
+// native install, or a CI service container). It is skipped by default so
+// `pnpm test` still works in environments without PostgreSQL running.
 const runIntegration = process.env["RUN_DB_INTEGRATION_TESTS"] === "true";
 
 describe.skipIf(!runIntegration)("database connection (integration)", () => {

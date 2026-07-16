@@ -35,9 +35,7 @@ export const apiEnvSchema = envSchema
       });
     }
 
-    if (
-      env.CORS_ALLOWED_ORIGINS.split(",").some((origin) => origin.trim().includes("localhost"))
-    ) {
+    if (env.CORS_ALLOWED_ORIGINS.split(",").some((origin) => origin.trim().includes("localhost"))) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["CORS_ALLOWED_ORIGINS"],

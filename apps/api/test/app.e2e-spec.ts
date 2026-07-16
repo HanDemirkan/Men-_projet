@@ -28,7 +28,10 @@ describe("API (e2e)", () => {
       .overrideProvider(PRISMA_CLIENT)
       .useValue({ $queryRaw: jest.fn().mockResolvedValue([{ result: 1 }]) })
       .overrideProvider(REDIS_CLIENT)
-      .useValue({ ping: jest.fn().mockResolvedValue("PONG") })
+      .useValue({
+        ping: jest.fn().mockResolvedValue("PONG"),
+        quit: jest.fn().mockResolvedValue("OK"),
+      })
       .compile();
 
     app = moduleFixture.createNestApplication();

@@ -18,12 +18,23 @@ const rootDir = __dirname;
 const envFile = path.join(rootDir, `.env.${nodeEnv}`);
 const logsDir = path.join(rootDir, "logs");
 
+if (!fs.existsSync(envFile)) {
+  throw new Error(
+    `${envFile} not found. Copy .env.${nodeEnv}.example to .env.${nodeEnv} and fill it in first.`,
+  );
+}
+
+// PM2 (as of 5.x) has no built-in per-app "env file" loading despite an
+// `env_file` key existing in some example configs online - it's silently
+// ignored. Parse the file ourselves and pass every value through `env`
+// instead, so this is the one place that actually determines what each
+// process sees.
+const fileEnv = dotenv.parse(fs.readFileSync(envFile));
+
 // Next.js's `next start` only respects the generic `PORT` env var, while
 // every other app reads its own `*_PORT` name (see packages/validation's
-// shared env schema). Read WEB_PORT out of the env file so both stay driven
-// by the same source of truth without duplicating the value here.
-const parsedEnv = fs.existsSync(envFile) ? dotenv.parse(fs.readFileSync(envFile)) : {};
-const webPort = parsedEnv.WEB_PORT || "3000";
+// shared env schema).
+const webPort = fileEnv.WEB_PORT || "3000";
 
 // Shared defaults so each app doesn't have to repeat the same operational
 // tuning. `kill_timeout` gives the app's own graceful-shutdown handlers
@@ -31,8 +42,7 @@ const webPort = parsedEnv.WEB_PORT || "3000";
 // worker, Next's own SIGTERM handling) time to finish before PM2 escalates
 // to SIGKILL.
 const common = {
-  env_file: envFile,
-  env: { NODE_ENV: nodeEnv },
+  env: { ...fileEnv, NODE_ENV: nodeEnv },
   autorestart: true,
   max_restarts: 10,
   min_uptime: "10s",

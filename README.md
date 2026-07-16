@@ -53,11 +53,11 @@ Servisler ayağa kalktıktan sonra:
 
 Üç ayrı env dosyası kullanılır:
 
-| Dosya                       | Kullanım                                              |
-| ---------------------------- | ------------------------------------------------------ |
-| `.env.development` (Git'te değil) | `pnpm dev*`/`pnpm test*` tarafından otomatik yüklenir |
-| `.env.production` (Git'te değil)  | `pnpm start:*` ve PM2 (`ecosystem.config.cjs`) tarafından yüklenir |
-| `.env.example`, `.env.development.example`, `.env.production.example` (Git'te) | Şablonlar |
+| Dosya                                                                          | Kullanım                                                           |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| `.env.development` (Git'te değil)                                              | `pnpm dev*`/`pnpm test*` tarafından otomatik yüklenir              |
+| `.env.production` (Git'te değil)                                               | `pnpm start:*` ve PM2 (`ecosystem.config.cjs`) tarafından yüklenir |
+| `.env.example`, `.env.development.example`, `.env.production.example` (Git'te) | Şablonlar                                                          |
 
 Önemli noktalar:
 
@@ -69,23 +69,23 @@ Servisler ayağa kalktıktan sonra:
 ## Migration komutları
 
 | Komut                    | Açıklama                                                      |
-| ------------------------ | --------------------------------------------------------------- |
-| `pnpm db:generate`       | Prisma Client'ı şemadan yeniden üretir                          |
-| `pnpm db:migrate`        | Yerel geliştirme için etkileşimli migration oluşturur/uygular  |
-| `pnpm db:migrate:deploy` | CI/production için etkileşimsiz migration uygular               |
-| `pnpm db:studio`         | Prisma Studio'yu açar                                            |
+| ------------------------ | ------------------------------------------------------------- |
+| `pnpm db:generate`       | Prisma Client'ı şemadan yeniden üretir                        |
+| `pnpm db:migrate`        | Yerel geliştirme için etkileşimli migration oluşturur/uygular |
+| `pnpm db:migrate:deploy` | CI/production için etkileşimsiz migration uygular             |
+| `pnpm db:studio`         | Prisma Studio'yu açar                                         |
 
 Production migration akışı için: [`docs/setup/postgresql.md`](docs/setup/postgresql.md).
 
 ## Test komutları
 
 | Komut               | Kapsam                                                  |
-| -------------------- | --------------------------------------------------------- |
+| ------------------- | ------------------------------------------------------- |
 | `pnpm test`         | Tüm paketlerin birim/entegrasyon testleri (Vitest/Jest) |
 | `pnpm test:e2e`     | API e2e testleri (Supertest) + web Playwright testleri  |
-| `pnpm lint`         | Tüm paketlerde ESLint                                    |
-| `pnpm typecheck`    | Tüm paketlerde `tsc --noEmit`                            |
-| `pnpm format:check` | Prettier format kontrolü                                 |
+| `pnpm lint`         | Tüm paketlerde ESLint                                   |
+| `pnpm typecheck`    | Tüm paketlerde `tsc --noEmit`                           |
+| `pnpm format:check` | Prettier format kontrolü                                |
 
 Playwright'ı ilk kez çalıştırmadan önce tarayıcıları indirin: `pnpm exec playwright install --with-deps chromium`.
 
@@ -106,13 +106,13 @@ Sıfırdan bir Ubuntu sunucusuna kurulum için: [`docs/setup/production-ubuntu.m
 
 ## Port bilgileri
 
-| Servis                 | Varsayılan port | Değişken       |
-| ----------------------- | ---------------- | --------------- |
-| Web                     | 3000              | `WEB_PORT`      |
-| API                     | 4000              | `API_PORT`      |
-| Worker (iç sağlık ucu) | 4100              | `WORKER_PORT`   |
-| PostgreSQL              | 5432              | `POSTGRES_PORT` |
-| Redis / Memurai         | 6379              | (bağlantı: `REDIS_URL`) |
+| Servis                 | Varsayılan port | Değişken                |
+| ---------------------- | --------------- | ----------------------- |
+| Web                    | 3000            | `WEB_PORT`              |
+| API                    | 4000            | `API_PORT`              |
+| Worker (iç sağlık ucu) | 4100            | `WORKER_PORT`           |
+| PostgreSQL             | 5432            | `POSTGRES_PORT`         |
+| Redis / Memurai        | 6379            | (bağlantı: `REDIS_URL`) |
 
 Production'da Nginx 80/443'te dinler ve `/api/` isteklerini API'ye, geri kalanını web'e yönlendirir (bkz. [`docs/setup/nginx.md`](docs/setup/nginx.md)).
 

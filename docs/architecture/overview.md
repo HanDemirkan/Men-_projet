@@ -4,16 +4,16 @@ Bu doküman Sprint 0 sonundaki sistem mimarisini açıklar. Ürün özellikleri 
 
 ## Sistem bileşenleri
 
-| Bileşen       | Sorumluluk                                   | Teknoloji                                      |
-| ------------- | -------------------------------------------- | ---------------------------------------------- |
-| `apps/web`    | Kullanıcıya gösterilen web arayüzü           | Next.js (App Router), TypeScript, Tailwind CSS |
-| `apps/api`    | REST API, iş mantığı, veri erişimi           | NestJS, TypeScript, Prisma                     |
-| `apps/worker` | Arka plan işleri (ileride) için ayrı süreç   | Node.js, TypeScript                            |
-| PostgreSQL    | Kalıcı veri deposu                           | PostgreSQL 16 (native kurulum)                 |
-| Redis         | Önbellek, ileride kuyruk/oturum deposu       | Redis 7-uyumlu (native; Windows'ta Memurai)    |
-| Yerel disk depolama | Dosya depolama (ileride ürün görselleri vb.) | `packages/storage` (`StorageService` + `LocalStorageAdapter`) |
-| Nginx         | Tek giriş noktası, reverse proxy (yalnızca production) | Nginx                           |
-| PM2           | Production süreç yöneticisi                  | PM2 (`ecosystem.config.cjs`)                   |
+| Bileşen             | Sorumluluk                                             | Teknoloji                                                     |
+| ------------------- | ------------------------------------------------------ | ------------------------------------------------------------- |
+| `apps/web`          | Kullanıcıya gösterilen web arayüzü                     | Next.js (App Router), TypeScript, Tailwind CSS                |
+| `apps/api`          | REST API, iş mantığı, veri erişimi                     | NestJS, TypeScript, Prisma                                    |
+| `apps/worker`       | Arka plan işleri (ileride) için ayrı süreç             | Node.js, TypeScript                                           |
+| PostgreSQL          | Kalıcı veri deposu                                     | PostgreSQL 16 (native kurulum)                                |
+| Redis               | Önbellek, ileride kuyruk/oturum deposu                 | Redis 7-uyumlu (native; Windows'ta Memurai)                   |
+| Yerel disk depolama | Dosya depolama (ileride ürün görselleri vb.)           | `packages/storage` (`StorageService` + `LocalStorageAdapter`) |
+| Nginx               | Tek giriş noktası, reverse proxy (yalnızca production) | Nginx                                                         |
+| PM2                 | Production süreç yöneticisi                            | PM2 (`ecosystem.config.cjs`)                                  |
 
 `web`, `api` ve `worker` birbirinden bağımsız süreçlerdir; aralarında doğrudan kod bağımlılığı yoktur. Ortak kod yalnızca `packages/*` üzerinden paylaşılır.
 

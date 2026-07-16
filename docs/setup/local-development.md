@@ -4,11 +4,11 @@ Bu doküman, Docker olmadan yerel geliştirme ortamını ayağa kaldırma adıml
 
 ## Önkoşullar
 
-| Bileşen    | Windows                                              | macOS / Linux                                |
-| ---------- | ----------------------------------------------------- | --------------------------------------------- |
-| Node.js    | >= 20 (nodejs.org installer)                         | >= 20 (nvm veya paket yöneticisi)             |
-| pnpm       | `corepack enable` (pnpm@9.15.0'ı otomatik etkinleştirir) | aynı                                        |
-| PostgreSQL | 16+ (postgresql.org installer, Windows servisi olarak kurulur) | 16+ (`apt install postgresql` / `brew install postgresql@16`) |
+| Bileşen    | Windows                                                                                     | macOS / Linux                                                             |
+| ---------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Node.js    | >= 20 (nodejs.org installer)                                                                | >= 20 (nvm veya paket yöneticisi)                                         |
+| pnpm       | `corepack enable` (pnpm@9.15.0'ı otomatik etkinleştirir)                                    | aynı                                                                      |
+| PostgreSQL | 16+ (postgresql.org installer, Windows servisi olarak kurulur)                              | 16+ (`apt install postgresql` / `brew install postgresql@16`)             |
 | Redis      | **Memurai** (Redis-uyumlu, native Windows servisi) - bkz. [`docs/setup/redis.md`](redis.md) | native `redis-server` (`apt install redis-server` / `brew install redis`) |
 
 Docker'a **ihtiyaç yoktur**.
@@ -81,7 +81,7 @@ pnpm test:e2e       # Jest e2e (api) + Playwright (web)
 pnpm build          # production build (tüm paketler + uygulamalar)
 ```
 
-`pnpm test`/`pnpm test:e2e` de `.env.development`'ı otomatik yükler; native PostgreSQL ve Redis çalışıyor olmalıdır.
+`pnpm test`/`pnpm test:e2e` de `.env.development`'ı otomatik yükler (ve build adımlarının `next build`'i bozmaması için `NODE_ENV`'i açıkça `test`'e sabitler); native PostgreSQL ve Redis çalışıyor olmalıdır. Playwright'ın ana sayfa testi ayrıca API'nin ayrıca çalışıyor olmasını bekler (`NEXT_PUBLIC_API_URL` üzerinden gerçek bir istek atar) — başka bir terminalde `pnpm dev:api` (veya `pnpm dev`) çalıştırmadan bu test başarısız olur.
 
 ## PM2 ile yerel smoke test (opsiyonel)
 
