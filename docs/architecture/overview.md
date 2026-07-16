@@ -9,12 +9,15 @@ Bu doküman Sprint 0 sonundaki sistem mimarisini açıklar. Ürün özellikleri 
 | `apps/web`    | Kullanıcıya gösterilen web arayüzü           | Next.js (App Router), TypeScript, Tailwind CSS |
 | `apps/api`    | REST API, iş mantığı, veri erişimi           | NestJS, TypeScript, Prisma                     |
 | `apps/worker` | Arka plan işleri (ileride) için ayrı süreç   | Node.js, TypeScript                            |
-| PostgreSQL    | Kalıcı veri deposu                           | PostgreSQL 16                                  |
-| Redis         | Önbellek, ileride kuyruk/oturum deposu       | Redis 7                                        |
-| MinIO         | Nesne depolama (ileride ürün görselleri vb.) | MinIO                                          |
-| Nginx         | Tek giriş noktası, reverse proxy             | Nginx                                          |
+| PostgreSQL    | Kalıcı veri deposu                           | PostgreSQL 16 (native kurulum)                 |
+| Redis         | Önbellek, ileride kuyruk/oturum deposu       | Redis 7-uyumlu (native; Windows'ta Memurai)    |
+| Yerel disk depolama | Dosya depolama (ileride ürün görselleri vb.) | `packages/storage` (`StorageService` + `LocalStorageAdapter`) |
+| Nginx         | Tek giriş noktası, reverse proxy (yalnızca production) | Nginx                           |
+| PM2           | Production süreç yöneticisi                  | PM2 (`ecosystem.config.cjs`)                   |
 
 `web`, `api` ve `worker` birbirinden bağımsız süreçlerdir; aralarında doğrudan kod bağımlılığı yoktur. Ortak kod yalnızca `packages/*` üzerinden paylaşılır.
+
+Tüm bileşenler native (Docker'sız) çalışır; bkz. [ADR 0005](../decisions/0005-remove-docker-native-deployment.md) ve [ADR 0006](../decisions/0006-local-file-storage.md).
 
 ## Monorepo yapısı
 
@@ -29,12 +32,13 @@ qr-platform/
 │   ├── validation/      # Ortak Zod şemaları (env, pagination, id)
 │   ├── shared/           # Ortak TypeScript tipleri ve sabitler
 │   ├── permissions/        # Rol sabitleri
-│   ├── ui/                  # Ortak React bileşenleri
-│   └── config/                # TypeScript/ESLint/Prettier temel yapılandırmaları
+│   ├── storage/              # StorageService soyutlaması + LocalStorageAdapter
+│   ├── ui/                     # Ortak React bileşenleri
+│   └── config/                   # TypeScript/ESLint/Prettier temel yapılandırmaları
 ├── infrastructure/
-│   ├── docker/          # Uygulama Dockerfile'ları
-│   ├── nginx/            # Reverse proxy yapılandırması
-│   └── scripts/            # Operasyon yardımcı betikleri
+│   ├── nginx/            # Reverse proxy yapılandırması (yalnızca production)
+│   └── scripts/            # Backup/restore ve operasyon yardımcı betikleri
+├── ecosystem.config.cjs        # PM2 süreç tanımları (production)
 ├── docs/                     # Mimari dokümantasyon ve karar kayıtları
 └── tests/                     # Playwright uçtan uca testleri
 ```
@@ -44,7 +48,7 @@ Yönetim, pnpm workspace + Turborepo ile sağlanır. Turborepo, paket bağımlı
 ## `web`, `api` ve `worker` sorumlulukları
 
 - **`apps/web`**: Kullanıcı arayüzünü render eder. Sprint 0'da yalnızca sistem durum ekranı vardır. API'ye tarayıcı üzerinden HTTP isteği atar; API'nin kapalı olması web uygulamasının çökmesine yol açmaz.
-- **`apps/api`**: Tüm iş mantığının ve veri erişiminin yaşayacağı REST API. Controller'lar ince tutulur; iş mantığı servis katmanında, veri erişimi Prisma üzerinden yapılır. Sprint 0'da yalnızca `/api/v1/health` uç noktası vardır.
+- **`apps/api`**: Tüm iş mantığının ve veri erişiminin yaşayacağı REST API. Controller'lar ince tutulur; iş mantığı servis katmanında, veri erişimi Prisma üzerinden yapılır. Sprint 0'da yalnızca health uç noktaları vardır (`/api/v1/health`, `/health/live`, `/health/ready`).
 - **`apps/worker`**: Kuyruk/zamanlanmış iş gerektiren işler (görsel işleme, e-posta, rapor, temizlik, bildirim) için ayrılmış, API'den bağımsız çalışan süreç. Sprint 0'da herhangi bir iş kuyruğu yoktur; yalnızca bağlantı sağlığı doğrulanır.
 
 ## Ortak paketlerin sorumlulukları
@@ -53,6 +57,7 @@ Yönetim, pnpm workspace + Turborepo ile sağlanır. Turborepo, paket bağımlı
 - **`packages/validation`**: Ortam değişkeni şeması gibi paylaşılan Zod şemalarının tek kaynağı. Uygulamalar ihtiyaç duydukları alt kümeyi `.pick()` ile türetir.
 - **`packages/shared`**: API cevap tipleri, health tipleri ve uygulama/ortam sabitleri gibi gerçekten ortak olan TypeScript tipleri.
 - **`packages/permissions`**: İleride kullanılacak rol sabitleri. Sprint 0'da yetkilendirme mantığı yoktur.
+- **`packages/storage`**: Framework'ten bağımsız `StorageService` arayüzü ve `LocalStorageAdapter` implementasyonu (bkz. [ADR 0006](../decisions/0006-local-file-storage.md)). `apps/api`'de bir DI provider'ı olarak sağlanır; henüz hiçbir upload endpoint'i bunu kullanmıyor.
 - **`packages/ui`**: `web` uygulamasının kullandığı, marka sistemi içermeyen temel React bileşenleri (Button, Card, StatusBadge).
 - **`packages/config`**: TypeScript, ESLint ve Prettier için tek doğruluk kaynağı olan temel yapılandırmalar.
 

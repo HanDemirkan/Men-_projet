@@ -34,7 +34,8 @@ packages/database/generated/
 *.log
 npm-debug.log*
 pnpm-debug.log*
-logs/
+logs/*
+!logs/.gitkeep
 
 # IDE
 .vscode/*

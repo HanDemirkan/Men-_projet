@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
+    "dotenv": "^16.4.5",
     "dotenv-cli": "^7.4.4",
     "pm2": "^5.4.3",
     "prettier": "^3.4.2",
