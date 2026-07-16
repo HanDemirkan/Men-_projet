@@ -8,11 +8,15 @@ const SENSITIVE_FIELD_PATTERNS = [
   "req.headers.authorization",
   "req.headers.cookie",
   'req.headers["set-cookie"]',
+  "req.body.password",
+  "req.body.token",
+  "req.body.refreshToken",
   "*.password",
   "*.token",
   "*.secret",
   "*.accessKey",
   "*.secretKey",
+  "*.apiKey",
 ];
 
 @Module({

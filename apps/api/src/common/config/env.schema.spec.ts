@@ -6,6 +6,7 @@ describe("validateApiEnv", () => {
     API_PORT: "4000",
     DATABASE_URL: "postgresql://user:pass@localhost:5432/db",
     REDIS_URL: "redis://localhost:6379",
+    STORAGE_DIR: "/tmp/qr-platform-storage",
     CORS_ALLOWED_ORIGINS: "http://localhost:3000",
     LOG_LEVEL: "info",
     REQUEST_BODY_LIMIT: "1mb",

@@ -42,4 +42,28 @@ export class AppConfigService {
   get requestBodyLimit(): string {
     return this.configService.get("REQUEST_BODY_LIMIT", { infer: true });
   }
+
+  get storageDir(): string {
+    return this.configService.get("STORAGE_DIR", { infer: true });
+  }
+
+  get storageMaxFileSizeMb(): number {
+    return this.configService.get("STORAGE_MAX_FILE_SIZE_MB", { infer: true });
+  }
+
+  get storageAllowedMimeTypes(): string[] {
+    return this.configService
+      .get("STORAGE_ALLOWED_MIME_TYPES", { infer: true })
+      .split(",")
+      .map((mimeType) => mimeType.trim())
+      .filter(Boolean);
+  }
+
+  get rateLimitTtlSeconds(): number {
+    return this.configService.get("RATE_LIMIT_TTL_SECONDS", { infer: true });
+  }
+
+  get rateLimitMaxRequests(): number {
+    return this.configService.get("RATE_LIMIT_MAX_REQUESTS", { infer: true });
+  }
 }

@@ -5,8 +5,12 @@ node_modules/
 # Environment
 .env
 .env.local
+.env.development
+.env.production
 .env.*.local
 !.env.example
+!.env.development.example
+!.env.production.example
 
 # Build outputs
 dist/
@@ -30,6 +34,7 @@ packages/database/generated/
 *.log
 npm-debug.log*
 pnpm-debug.log*
+logs/
 
 # IDE
 .vscode/*
