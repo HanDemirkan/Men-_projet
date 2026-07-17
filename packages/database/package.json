@@ -22,13 +22,15 @@
     "postinstall": "prisma generate"
   },
   "prisma": {
-    "seed": "ts-node --transpile-only prisma/seed.ts"
+    "seed": "ts-node --transpile-only --project prisma/tsconfig.seed.json prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0"
+    "@prisma/client": "^5.22.0",
+    "argon2": "^0.41.1"
   },
   "devDependencies": {
     "@qr-platform/config": "workspace:*",
+    "@qr-platform/permissions": "workspace:*",
     "@types/node": "^22.10.2",
     "eslint": "^9.17.0",
     "prisma": "^5.22.0",
