@@ -7,12 +7,12 @@ import { useState } from "react";
 
 import { StorefrontRenderer } from "../components/StorefrontRenderer";
 
-import type { PublicTenant, StorefrontMenuSummary } from "@/types/storefront";
+import type { PublicTenant, StorefrontMenu } from "@/types/storefront";
 
 export interface DevicePreviewProps {
   tenant: PublicTenant;
   config: StorefrontConfig;
-  menus: StorefrontMenuSummary[];
+  menus: StorefrontMenu[];
 }
 
 type DeviceSize = "mobile" | "tablet" | "desktop";
@@ -21,21 +21,18 @@ const DEVICE_WIDTH: Record<DeviceSize, number> = { mobile: 375, tablet: 768, des
 const DEVICE_LABEL: Record<DeviceSize, string> = { mobile: "Mobil", tablet: "Tablet", desktop: "Masaüstü" };
 const DEVICE_ICON: Record<DeviceSize, typeof Smartphone> = { mobile: Smartphone, tablet: Tablet, desktop: Monitor };
 
-// Spec §12: mobile/tablet/desktop preview modes + zoom + fullscreen, all
-// rendering the exact same StorefrontRenderer the public storefront uses -
-// so what the business sees here is what a real visitor sees, at any size.
 export function DevicePreview({ tenant, config, menus }: DevicePreviewProps) {
   const [device, setDevice] = useState<DeviceSize>("mobile");
   const [zoom, setZoom] = useState(100);
   const [fullscreen, setFullscreen] = useState(false);
 
   const frame = (scale: number) => (
-    <div className="flex justify-center overflow-auto rounded-lg border border-border bg-muted/30 p-6">
+    <div className="flex justify-center overflow-auto rounded-xl border border-border bg-muted/30 p-6">
       <div
         style={{ width: DEVICE_WIDTH[device], transform: `scale(${scale / 100})`, transformOrigin: "top center" }}
-        className="shrink-0 overflow-hidden rounded-lg border border-border bg-background shadow-sm"
+        className="shrink-0 overflow-hidden rounded-[24px] border border-border bg-background shadow-md"
       >
-        <StorefrontRenderer tenant={tenant} config={config} mode="home" menus={menus} />
+        <StorefrontRenderer tenant={tenant} config={config} mode="menu" menus={menus} />
       </div>
     </div>
   );
@@ -65,11 +62,11 @@ export function DevicePreview({ tenant, config, menus }: DevicePreviewProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon" onClick={() => setZoom((z) => Math.max(50, z - 10))} aria-label="Uzaklaştır">
+        <Button variant="outline" size="icon" onClick={() => setZoom((value) => Math.max(50, value - 10))} aria-label="Uzaklaştır">
           <Minus className="h-4 w-4" />
         </Button>
         <span className="w-10 text-center text-xs text-muted-foreground">{zoom}%</span>
-        <Button variant="outline" size="icon" onClick={() => setZoom((z) => Math.min(100, z + 10))} aria-label="Yakınlaştır">
+        <Button variant="outline" size="icon" onClick={() => setZoom((value) => Math.min(100, value + 10))} aria-label="Yakınlaştır">
           <Plus className="h-4 w-4" />
         </Button>
         <Button variant="outline" size="icon" onClick={() => setFullscreen(true)} aria-label="Tam ekran önizleme">
