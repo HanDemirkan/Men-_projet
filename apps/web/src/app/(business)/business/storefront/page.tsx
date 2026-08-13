@@ -3,32 +3,40 @@ import { AlertTriangle } from "lucide-react";
 import type { Metadata } from "next";
 
 import { StorefrontBuilder } from "@/features/storefront/components/StorefrontBuilder";
+import { publicFetch } from "@/lib/public-fetch";
 import { serverFetch } from "@/lib/server-fetch";
 import type { StorefrontConfigState } from "@/services/storefront-config.service";
-import type { Menu } from "@/types/catalog";
 import type { BusinessProfile } from "@/types/catalog";
+import type { StorefrontMenu, StorefrontMenuPage } from "@/types/storefront";
 
 export const metadata: Metadata = {
   title: "QR & Storefront — QR Platform",
 };
 
 export default async function BusinessStorefrontPage() {
-  const [tenant, config, menus] = await Promise.all([
+  const [tenant, config] = await Promise.all([
     serverFetch<BusinessProfile>("/business/profile"),
     serverFetch<StorefrontConfigState>("/storefront-config"),
-    serverFetch<Menu[]>("/menus"),
   ]);
+
+  let previewMenus: StorefrontMenu[] = [];
+  if (tenant?.slug) {
+    const publicMenu = await publicFetch<StorefrontMenuPage>(`/storefront/${tenant.slug}/menu`);
+    if (publicMenu.status === "success") {
+      previewMenus = publicMenu.data.menus;
+    }
+  }
 
   return (
     <>
       <PageHeader
         title="QR & Storefront"
-        subtitle="Public sayfanızın tasarımını, QR kodunu ve SEO ayarlarını yönetin."
+        subtitle="Müşterinizin QR kodu okuttuğunda göreceği gerçek menüyü tasarlayın ve yayınlayın."
       />
       {tenant && config ? (
         <StorefrontBuilder
           tenant={tenant}
-          menus={(menus ?? []).map((menu) => ({ id: menu.id, name: menu.name }))}
+          menus={previewMenus}
           initialTemplateCode={config.templateCode}
           initialDraft={config.draft}
           initialHasUnpublishedChanges={config.hasUnpublishedChanges}
