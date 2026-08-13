@@ -1,28 +1,49 @@
 import type { ApiResponse } from "@qr-platform/shared";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 import { getServerApiUrl } from "./env";
 
-// Server Component data-fetch helper: `apiFetch` (lib/api-client.ts) can't
-// be used here because the browser's cookies aren't automatically available
-// to a Server Component's own `fetch` calls - the incoming request's cookie
-// header has to be forwarded manually, same as `requireUser()` does.
-// Returns `null` on any failure (auth, network, 404) - callers that need to
-// distinguish those cases should call the API directly instead.
-export async function serverFetch<TData>(path: string, init?: RequestInit): Promise<TData | null> {
+async function fetchServerData<TData>(path: string): Promise<TData | null> {
   const cookieHeader = cookies().toString();
 
-  const response = await fetch(`${getServerApiUrl()}${path}`, {
-    ...init,
-    headers: { ...(cookieHeader ? { cookie: cookieHeader } : {}), ...init?.headers },
-    cache: "no-store",
-  });
+  try {
+    const response = await fetch(`${getServerApiUrl()}${path}`, {
+      headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+      cache: "no-store",
+    });
 
-  const body = (await response.json().catch(() => null)) as ApiResponse<TData> | null;
-
-  if (!body || !body.success) {
+    const body = (await response.json().catch(() => null)) as ApiResponse<TData> | null;
+    return body && body.success ? body.data : null;
+  } catch {
     return null;
   }
+}
 
-  return body.data;
+// GET reads are memoized for the lifetime of a single Server Component render.
+// Several layouts/pages ask for the same resource during one navigation; without
+// this cache they generate duplicate API round-trips and make panel navigation
+// feel slower than the actual backend response time.
+const cachedServerGet = cache(async <TData>(path: string): Promise<TData | null> => fetchServerData<TData>(path));
+
+export async function serverFetch<TData>(path: string, init?: RequestInit): Promise<TData | null> {
+  const method = (init?.method ?? "GET").toUpperCase();
+  const hasCustomRequest = Boolean(init && (init.body || init.headers || method !== "GET"));
+
+  if (!hasCustomRequest) {
+    return cachedServerGet<TData>(path);
+  }
+
+  const cookieHeader = cookies().toString();
+  try {
+    const response = await fetch(`${getServerApiUrl()}${path}`, {
+      ...init,
+      headers: { ...(cookieHeader ? { cookie: cookieHeader } : {}), ...init?.headers },
+      cache: "no-store",
+    });
+    const body = (await response.json().catch(() => null)) as ApiResponse<TData> | null;
+    return body && body.success ? body.data : null;
+  } catch {
+    return null;
+  }
 }
