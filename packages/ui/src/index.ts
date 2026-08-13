@@ -4,6 +4,8 @@ export * from "./types/navigation";
 
 export * from "./hooks/use-toast";
 
+export * from "./motion";
+
 // Form
 export * from "./components/Button";
 export * from "./components/Input";
@@ -15,6 +17,9 @@ export * from "./components/Checkbox";
 export * from "./components/Switch";
 export * from "./components/Radio";
 export * from "./components/SearchInput";
+export * from "./components/Dropzone";
+export * from "./components/SortableList";
+export * from "./components/FieldError";
 
 // Display
 export * from "./components/Badge";
@@ -37,6 +42,7 @@ export * from "./components/Tooltip";
 export * from "./components/Dropdown";
 export * from "./components/Toast";
 export * from "./components/Toaster";
+export * from "./components/Tabs";
 
 // Navigation shell
 export * from "./components/Sidebar";

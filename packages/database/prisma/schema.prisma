@@ -3,6 +3,14 @@
 // Permission -> Session -> AuditLog) is intentionally stable going forward -
 // see docs/decisions/0007-identity-multi-tenant-schema.md for the rationale
 // behind every deviation from a literal 1:1 field mapping.
+//
+// Sprint 3A: adds Business Profile fields to Tenant, a single Media/upload
+// model, and the Menu -> Category -> Product -> Variant/OptionGroup ->
+// Option domain - see docs/decisions/0008-business-profile-media-menu-domain.md.
+//
+// Sprint 3B: adds the public storefront (Category.slug), and replaces the
+// flat theme/primaryColor/secondaryColor/accentColor Tenant columns with a
+// draft/published storefrontConfig JSON pair - see docs/decisions/0009-storefront-theme-and-publishing.md.
 
 generator client {
   provider = "prisma-client-js"
@@ -42,22 +50,149 @@ enum TenantUserStatus {
   @@map("tenant_user_status")
 }
 
+enum MediaType {
+  IMAGE
+  LOGO
+  COVER
+  PRODUCT
+  CATEGORY
+  QR
+
+  @@map("media_type")
+}
+
+enum MenuStatus {
+  DRAFT
+  PUBLISHED
+
+  @@map("menu_status")
+}
+
 model Tenant {
   id        String       @id @default(uuid())
   name      String
   slug      String       @unique
-  logo      String?
   status    TenantStatus @default(ACTIVE)
   createdAt DateTime     @default(now()) @map("created_at")
   updatedAt DateTime     @updatedAt @map("updated_at")
   deletedAt DateTime?    @map("deleted_at")
 
-  branches    Branch[]
-  tenantUsers TenantUser[]
-  roles       Role[]
-  auditLogs   AuditLog[]
+  // --- Business Profile (Sprint 3A) ---
+  logoImageId    String? @map("logo_image_id")
+  coverImageId   String? @map("cover_image_id")
+  about          String?
+  phone          String?
+  whatsapp       String?
+  email          String?
+  address        String?
+  googleMapsLink String? @map("google_maps_link")
+  workingHours   Json?   @map("working_hours")
+  instagram      String?
+  facebook       String?
+  website        String?
+  tagline        String?
+  currency       String  @default("TRY")
+  language       String  @default("tr")
+
+  // --- Storefront design + publishing (Sprint 3B, moved to its own table Sprint 7) ---
+  // See TenantStorefrontConfig / StorefrontConfigRevision below - the old
+  // storefrontConfig/storefrontConfigDraft/storefrontPublishedAt JSON/DateTime
+  // columns that used to live directly on Tenant were extracted into a
+  // dedicated table so a template rewrite and revision history didn't keep
+  // bloating this model.
+  storefrontConfig TenantStorefrontConfig?
+
+  // --- Business settings (Sprint 5) ---
+  // Null means "defaults" (computed at read time, not stored), same
+  // null-means-unset convention as storefrontConfig above. `currency`/
+  // `language` above are NOT duplicated in here - they stay the single
+  // source of truth shared by both /business-profile and /business/settings.
+  businessSettings Json? @map("business_settings")
+
+  branches       Branch[]
+  tenantUsers    TenantUser[]
+  roles          Role[]
+  auditLogs      AuditLog[]
+  storefrontViews StorefrontView[]
+  storefrontConfigRevisions StorefrontConfigRevision[]
+  slugAliases TenantSlugAlias[]
+  // Ownership relation (Media.tenantId) - the default/unnamed relation
+  // between Tenant and Media. `logoImage`/`coverImage` below are separate,
+  // explicitly-named relations for "which of this tenant's own media rows
+  // is currently selected as the logo/cover" - Prisma requires distinct
+  // names once more than one relation exists between the same two models.
+  media        Media[]
+  menus        Menu[]
+  categories   Category[]
+  products     Product[]
+  variants     Variant[]
+  optionGroups OptionGroup[]
+  options      Option[]
+  logoImage    Media?        @relation("TenantLogoImage", fields: [logoImageId], references: [id], onDelete: SetNull)
+  coverImage   Media?        @relation("TenantCoverImage", fields: [coverImageId], references: [id], onDelete: SetNull)
 
   @@map("tenants")
+}
+
+// Sprint 7: extracted off Tenant so the growing template/theme JSON shape
+// (hero/nav/card layout choices, typography, contrast-checked colors - see
+// packages/shared/src/storefront-config.ts) doesn't keep bloating the core
+// Tenant model, and so `templateCode`/`templateVersion` have real, queryable
+// columns instead of being duplicated inside the JSON blob. 1:1 with Tenant
+// (tenantId is the PK, not a separate id) - every tenant has exactly zero or
+// one of these; absence means "never customized, compute defaults from the
+// Classic-equivalent template at read time" (see storefront-config.service.ts).
+model TenantStorefrontConfig {
+  tenantId        String    @id @map("tenant_id")
+  templateCode    String    @map("template_code")
+  templateVersion Int       @map("template_version")
+  draftConfig     Json      @map("draft_config")
+  publishedConfig Json?     @map("published_config")
+  // Mirrors the old Tenant.storefrontPublishedAt's reasoning: deliberately
+  // its own column, not reused from `updatedAt` (which also changes on
+  // draft-only saves that never actually published).
+  publishedAt DateTime? @map("published_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_storefront_configs")
+}
+
+// Sprint 7: one row per successful publish - the "en az son yayınlanan
+// snapshot saklansın" requirement. Enables a simple revert-to-previous-publish
+// endpoint without a full revision-browsing UI. Never updated, only inserted;
+// pruning old rows is a future concern, not needed at this dev-DB scale.
+model StorefrontConfigRevision {
+  id           String   @id @default(uuid())
+  tenantId     String   @map("tenant_id")
+  templateCode String   @map("template_code")
+  config       Json
+  publishedAt  DateTime @default(now()) @map("published_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, publishedAt])
+  @@map("storefront_config_revisions")
+}
+
+// Sprint 7 (QR permanence): the printed QR code always encodes only
+// `/{tenant.slug}` (see QrService), never a menu/template/revision id, so it
+// never needs reprinting - but a business can still rename its slug later.
+// Every time a tenant's slug changes, the OLD value is archived here pointing
+// at the same tenant, so a stale scan/bookmark 308-redirects to the current
+// address instead of 404ing (PublicStorefrontContextMiddleware resolves
+// active Tenant.slug first, falling back to this table only on a miss - an
+// active slug always wins even if it was once someone else's alias).
+model TenantSlugAlias {
+  oldSlug   String   @id @map("old_slug")
+  tenantId  String   @map("tenant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("tenant_slug_aliases")
 }
 
 model Branch {
@@ -65,10 +200,16 @@ model Branch {
   tenantId  String       @map("tenant_id")
   name      String
   phone     String?
+  email     String?
   address   String?
-  status    BranchStatus @default(ACTIVE)
-  createdAt DateTime     @default(now()) @map("created_at")
-  updatedAt DateTime     @updatedAt @map("updated_at")
+  // Same representation as Tenant.googleMapsLink - a pasted Google Maps
+  // link, not lat/lng coordinates (no geo features exist anywhere else in
+  // this codebase to justify the extra complexity).
+  googleMapsLink String? @map("google_maps_link")
+  workingHours   Json?   @map("working_hours")
+  status         BranchStatus @default(ACTIVE)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
 
   tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   tenantUsers TenantUser[]
@@ -79,22 +220,23 @@ model Branch {
 }
 
 model User {
-  id              String    @id @default(uuid())
-  firstName       String    @map("first_name")
-  lastName        String    @map("last_name")
-  email           String    @unique
-  passwordHash    String    @map("password_hash")
-  emailVerifiedAt DateTime? @map("email_verified_at")
+  id              String     @id @default(uuid())
+  firstName       String     @map("first_name")
+  lastName        String     @map("last_name")
+  email           String     @unique
+  passwordHash    String     @map("password_hash")
+  emailVerifiedAt DateTime?  @map("email_verified_at")
   status          UserStatus @default(ACTIVE)
-  lastLoginAt     DateTime? @map("last_login_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  deletedAt       DateTime? @map("deleted_at")
+  lastLoginAt     DateTime?  @map("last_login_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  deletedAt       DateTime?  @map("deleted_at")
 
   tenantUsers         TenantUser[]
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
   auditLogs           AuditLog[]
+  uploadedMedia       Media[]
 
   @@map("users")
 }
@@ -105,18 +247,19 @@ model User {
 // every other role uses - see ADR 0007 for why this avoids a second,
 // parallel authorization mechanism.
 model TenantUser {
-  id        String            @id @default(uuid())
-  tenantId  String?           @map("tenant_id")
-  userId    String            @map("user_id")
-  branchId  String?           @map("branch_id")
-  roleId    String            @map("role_id")
-  status    TenantUserStatus  @default(ACTIVE)
-  createdAt DateTime          @default(now()) @map("created_at")
+  id        String           @id @default(uuid())
+  tenantId  String?          @map("tenant_id")
+  userId    String           @map("user_id")
+  branchId  String?          @map("branch_id")
+  roleId    String           @map("role_id")
+  status    TenantUserStatus @default(ACTIVE)
+  createdAt DateTime         @default(now()) @map("created_at")
 
-  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  branch Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  role   Role    @relation(fields: [roleId], references: [id])
+  tenant   Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch   Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  role     Role      @relation(fields: [roleId], references: [id])
+  sessions Session[]
 
   @@unique([tenantId, userId])
   @@index([userId])
@@ -173,6 +316,12 @@ model RolePermission {
 model Session {
   id               String   @id @default(uuid())
   userId           String   @map("user_id")
+  // Not in the literal SESSIONS field list. Without it, refresh has no way
+  // to know which tenant membership the session was issued for and would
+  // have to re-derive it from scratch on every refresh - inconsistent if a
+  // user ever has more than one membership. A session is "this user, as
+  // this specific membership, from this device" - see ADR 0007.
+  tenantUserId     String   @map("tenant_user_id")
   refreshTokenHash String   @unique @map("refresh_token_hash")
   ip               String?
   userAgent        String?  @map("user_agent")
@@ -180,9 +329,11 @@ model Session {
   lastUsedAt       DateTime @default(now()) @map("last_used_at")
   createdAt        DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantUser TenantUser @relation(fields: [tenantUserId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([tenantUserId])
   @@map("sessions")
 }
 
@@ -211,6 +362,9 @@ model AuditLog {
   action    String
   entity    String
   entityId  String?  @map("entity_id")
+  // Not in the literal AUDIT_LOGS field list, but the AUDIT section
+  // explicitly requires every log to carry a RequestId - see ADR 0007.
+  requestId String?  @map("request_id")
   oldValue  Json?    @map("old_value")
   newValue  Json?    @map("new_value")
   ip        String?
@@ -224,5 +378,221 @@ model AuditLog {
   @@index([tenantId])
   @@index([userId])
   @@index([createdAt])
+  // Sprint 8 perf: the admin dashboard's `loginsLast7Days` count filters
+  // exact `action` + a `createdAt` range - the standalone createdAt index
+  // above doesn't help an exact-match-on-action query the way this
+  // composite does, and this table only grows.
+  @@index([action, createdAt])
   @@map("audit_logs")
+}
+
+// Sprint 5: one row per real public storefront hit - powers the business
+// dashboard's "QR görüntülenme sayısı" / "Son 7 günlük görüntülenme"
+// metrics with real counts instead of a fake number. `source = "qr"` is set
+// only when the request's `?src=qr` query param matches what the generated
+// QR code itself encodes (see QrService) - every other storefront visit
+// (direct link, search engine, share) is still counted but without that tag.
+// Deliberately minimal: no per-page/session/referrer breakdown - this is not
+// a general analytics system, just enough to answer the two dashboard
+// numbers honestly.
+model StorefrontView {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  source    String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([createdAt])
+  @@map("storefront_views")
+}
+
+// --- Sprint 3A: Business Profile media + Menu domain ---
+// Every model below carries its own denormalized `tenantId` (rather than
+// relying on a join up the Menu/Category/Product chain) so it can be added
+// straight to `TENANT_SCOPED_MODELS` in tenant-scoped-client.ts and inherit
+// the same "structurally impossible to forget" isolation guarantee Branch/
+// TenantUser already have - see ADR 0007 and ADR 0008.
+
+// The single upload system every image (logo, cover, category, product) and
+// future QR code goes through - see ADR 0008. `LOCAL_STORAGE` files are
+// addressed by `key`; `thumbnailKey` is populated for images only.
+model Media {
+  id               String    @id @default(uuid())
+  tenantId         String    @map("tenant_id")
+  type             MediaType
+  key              String    @unique
+  thumbnailKey     String?   @map("thumbnail_key")
+  mimeType         String    @map("mime_type")
+  sizeBytes        Int       @map("size_bytes")
+  width            Int?
+  height           Int?
+  originalFilename String    @map("original_filename")
+  uploadedByUserId String?   @map("uploaded_by_user_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  tenant         Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  uploadedByUser User?      @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+  categories     Category[]
+  products       Product[]
+  logoOfTenants  Tenant[]   @relation("TenantLogoImage")
+  coverOfTenants Tenant[]   @relation("TenantCoverImage")
+
+  @@index([tenantId])
+  @@map("media")
+}
+
+// A tenant may publish more than one menu (e.g. breakfast/dinner, seasonal).
+model Menu {
+  id          String     @id @default(uuid())
+  tenantId    String     @map("tenant_id")
+  name        String
+  description String?
+  status      MenuStatus @default(DRAFT)
+  sortOrder   Int        @default(0) @map("sort_order")
+  activeFrom  DateTime?  @map("active_from")
+  activeUntil DateTime?  @map("active_until")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  categories Category[]
+
+  @@index([tenantId])
+  @@map("menus")
+}
+
+// `slug` added in Sprint 3B for the public storefront's
+// /{tenantSlug}/category/{slug} route - see ADR 0009.
+model Category {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  menuId      String   @map("menu_id")
+  name        String
+  slug        String
+  description String?
+  imageId     String?  @map("image_id")
+  sortOrder   Int      @default(0) @map("sort_order")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  menu     Menu      @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  image    Media?    @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  products Product[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@index([menuId])
+  @@map("categories")
+}
+
+// Soft-deleted (see `deletedAt`) - list/read queries always filter
+// `deletedAt: null` explicitly (same manual-filter convention as User/Tenant
+// from Sprint 2; no global Prisma middleware does this automatically).
+model Product {
+  id               String    @id @default(uuid())
+  tenantId         String    @map("tenant_id")
+  categoryId       String    @map("category_id")
+  name             String
+  slug             String
+  description      String?
+  shortDescription String?   @map("short_description")
+  price            Decimal   @db.Decimal(10, 2)
+  imageId          String?   @map("image_id")
+  preparationTime  Int?      @map("preparation_time")
+  calories         Int?
+  // Sprint 7: free-text allergen note (e.g. "Gluten, süt ürünleri") shown on
+  // the product card/detail sheet - spec §9-10. Free text, not a fixed enum:
+  // allergen disclosure conventions vary enough by cuisine/region that a
+  // closed list would be more restrictive than useful for a first pass.
+  allergens        String?
+  // Sprint 8 storefront redesign: structured dietary/style tags (vegan,
+  // vegetarian, gluten-free, spicy, new, chefs-pick - see
+  // packages/shared/src/product-tags.ts's ProductTag) driving the storefront
+  // badge system. A real Postgres array, not a join table - a fixed, small
+  // enum-like set that's read far more often than written doesn't earn a
+  // separate table yet.
+  tags             String[]  @default([])
+  isAvailable      Boolean   @default(true) @map("is_available")
+  isFeatured       Boolean   @default(false) @map("is_featured")
+  sortOrder        Int       @default(0) @map("sort_order")
+  deletedAt        DateTime? @map("deleted_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category     Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  image        Media?        @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  variants     Variant[]
+  optionGroups OptionGroup[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@index([categoryId])
+  @@map("products")
+}
+
+// e.g. Small/Medium/Large - each variant carries its own price.
+model Variant {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  productId String   @map("product_id")
+  name      String
+  price     Decimal  @db.Decimal(10, 2)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([productId])
+  @@map("variants")
+}
+
+// Attached to the Product (not each Variant) - e.g. "Ekstralar"/"Soslar" are
+// shared across all of a product's variants, not duplicated per size.
+model OptionGroup {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  productId String   @map("product_id")
+  name      String
+  required  Boolean  @default(false)
+  multiple  Boolean  @default(false)
+  minimum   Int      @default(0)
+  maximum   Int?
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options Option[]
+
+  @@index([tenantId])
+  @@index([productId])
+  @@map("option_groups")
+}
+
+model Option {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  optionGroupId String   @map("option_group_id")
+  name          String
+  price         Decimal  @default(0) @db.Decimal(10, 2)
+  sortOrder     Int      @default(0) @map("sort_order")
+  available     Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  optionGroup OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([optionGroupId])
+  @@map("options")
 }

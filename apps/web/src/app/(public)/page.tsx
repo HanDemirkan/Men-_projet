@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { CtaSection } from "@/features/landing/components/CtaSection";
 import { FaqSection } from "@/features/landing/components/FaqSection";
 import { FeaturesSection } from "@/features/landing/components/FeaturesSection";
 import { Footer } from "@/features/landing/components/Footer";
@@ -17,13 +18,14 @@ export default function LandingPage() {
   return (
     <>
       <SiteHeader />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />
         <ProductPreviewSection />
         <WhyChooseSection />
         <FaqSection />
+        <CtaSection />
       </main>
       <Footer />
     </>

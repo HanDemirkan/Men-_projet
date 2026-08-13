@@ -14,6 +14,7 @@ export function HeroSection() {
   return (
     <section className="container flex flex-col items-center gap-16 py-20 lg:flex-row lg:gap-12 lg:py-28">
       <motion.div
+        data-testid="hero-content"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: MOTION_DURATION.slow, ease: MOTION_EASE.enter }}

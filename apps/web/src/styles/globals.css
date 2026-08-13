@@ -19,14 +19,22 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 243 75% 59%;
+    /* Darkened from the original 59% lightness - a real axe-core audit
+       (Sprint 6) found white button text on the old value at 3.92:1,
+       under WCAG AA's 4.5:1 minimum. */
+    --primary: 243 75% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
 
     --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    /* Darkened from the original 46.1% lightness - real axe-core audits
+       (Sprint 6) found the old value at ~3.7-4.4:1 against white/near-white
+       card backgrounds, under WCAG AA's 4.5:1 minimum for normal text. This
+       token is used almost everywhere (StatCard labels, subtitles, avatar
+       fallback initials), so the fix belongs here, not at each call site. */
+    --muted-foreground: 240 3.8% 35%;
 
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
@@ -39,7 +47,7 @@
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 243 75% 59%;
+    --ring: 243 75% 50%;
 
     --radius: 0.625rem;
   }
@@ -55,5 +63,24 @@
       "cv03",
       "cv04",
       "cv11";
+  }
+}
+
+/*
+ * Global floor for `prefers-reduced-motion: reduce` - covers CSS-driven
+ * animations (Radix data-state + tailwindcss-animate, e.g. Dialog/Drawer/
+ * Toast) that Framer Motion's own `reducedMotion="user"` (see AppProviders)
+ * doesn't reach. Near-instant rather than fully instant (0.01ms) so
+ * `transitionend`/`animationend` listeners some components rely on for
+ * cleanup still fire.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

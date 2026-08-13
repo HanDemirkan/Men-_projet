@@ -2,39 +2,17 @@
 // user per role so the auth system can be exercised end to end. There are
 // no tenant/branch/user CRUD endpoints yet (Sprint 2 scope is auth only),
 // so this script is the only way this data gets created.
-import { PERMISSIONS, PERMISSION_GROUPS, ROLES, ROLE_PERMISSIONS } from "@qr-platform/permissions";
-import type { PermissionCode, Role } from "@qr-platform/permissions";
+//
+// This script is dev/demo-only - it creates a fake tenant and 7 fake users
+// with a shared, publicly-documented password. It must never be the only
+// way a real SUPER_ADMIN account gets created in production - see
+// prisma/bootstrap-admin.ts (`pnpm bootstrap:admin`) for that.
+import { ROLES } from "@qr-platform/permissions";
+import type { Role } from "@qr-platform/permissions";
 import * as argon2 from "argon2";
 
+import { seedPermissions, seedRoles } from "../src/admin-bootstrap";
 import { prisma } from "../src/client";
-
-const PERMISSION_NAMES: Record<PermissionCode, string> = {
-  [PERMISSIONS.TENANT_READ]: "İşletme Görüntüleme",
-  [PERMISSIONS.TENANT_UPDATE]: "İşletme Düzenleme",
-  [PERMISSIONS.BRANCH_READ]: "Şube Görüntüleme",
-  [PERMISSIONS.BRANCH_UPDATE]: "Şube Düzenleme",
-  [PERMISSIONS.MENU_READ]: "Menü Görüntüleme",
-  [PERMISSIONS.MENU_WRITE]: "Menü Düzenleme",
-  [PERMISSIONS.PRODUCT_READ]: "Ürün Görüntüleme",
-  [PERMISSIONS.PRODUCT_WRITE]: "Ürün Düzenleme",
-  [PERMISSIONS.ORDER_READ]: "Sipariş Görüntüleme",
-  [PERMISSIONS.ORDER_WRITE]: "Sipariş Oluşturma/Düzenleme",
-  [PERMISSIONS.CASHIER_PAYMENT]: "Ödeme Alma",
-  [PERMISSIONS.REPORT_VIEW]: "Rapor Görüntüleme",
-  [PERMISSIONS.USER_INVITE]: "Kullanıcı Davet Etme",
-  [PERMISSIONS.ROLE_MANAGE]: "Rol Yönetimi",
-  [PERMISSIONS.PERMISSION_MANAGE]: "Yetki Yönetimi",
-};
-
-const ROLE_NAMES: Record<Role, string> = {
-  [ROLES.SUPER_ADMIN]: "Süper Admin",
-  [ROLES.TENANT_OWNER]: "İşletme Sahibi",
-  [ROLES.BRANCH_MANAGER]: "Şube Müdürü",
-  [ROLES.CASHIER]: "Kasiyer",
-  [ROLES.WAITER]: "Garson",
-  [ROLES.KITCHEN]: "Mutfak",
-  [ROLES.MENU_EDITOR]: "Menü Editörü",
-};
 
 // Demo password for every seeded account. Documented here (and in the
 // Sprint 2 delivery notes) - not a secret, this is local/dev seed data only.
@@ -108,55 +86,6 @@ const DEMO_USERS: DemoUserSeed[] = [
   },
 ];
 
-async function seedPermissions(): Promise<void> {
-  for (const code of Object.values(PERMISSIONS)) {
-    await prisma.permission.upsert({
-      where: { code },
-      update: { name: PERMISSION_NAMES[code], group: PERMISSION_GROUPS[code] },
-      create: { code, name: PERMISSION_NAMES[code], group: PERMISSION_GROUPS[code] },
-    });
-  }
-  console.log(`Seeded ${Object.values(PERMISSIONS).length} permissions.`);
-}
-
-async function seedRoles(): Promise<Record<Role, string>> {
-  const roleIds: Partial<Record<Role, string>> = {};
-
-  for (const code of Object.values(ROLES)) {
-    // Prisma's compound-unique `where` input requires a non-null value even
-    // though `tenantId` itself is nullable (Postgres treats each NULL as
-    // distinct in a unique index, so `findUnique`/`upsert` can't target a
-    // null-tenantId row via the compound key) - findFirst + create/update
-    // is the correct pattern for system (tenantId: null) roles.
-    const existing = await prisma.role.findFirst({ where: { tenantId: null, code } });
-    const role = existing
-      ? await prisma.role.update({
-          where: { id: existing.id },
-          data: { name: ROLE_NAMES[code], system: true },
-        })
-      : await prisma.role.create({
-          data: { tenantId: null, code, name: ROLE_NAMES[code], system: true },
-        });
-    roleIds[code] = role.id;
-
-    const permissionCodes = ROLE_PERMISSIONS[code];
-    const permissions = await prisma.permission.findMany({
-      where: { code: { in: permissionCodes } },
-    });
-
-    for (const permission of permissions) {
-      await prisma.rolePermission.upsert({
-        where: { roleId_permissionId: { roleId: role.id, permissionId: permission.id } },
-        update: {},
-        create: { roleId: role.id, permissionId: permission.id },
-      });
-    }
-  }
-
-  console.log(`Seeded ${Object.values(ROLES).length} system roles with their permissions.`);
-  return roleIds as Record<Role, string>;
-}
-
 async function seedDemoTenant(): Promise<{ tenantId: string; branchId: string }> {
   const tenant = await prisma.tenant.upsert({
     where: { slug: "sahil-cafe" },
@@ -217,7 +146,9 @@ async function seedDemoUsers(
 
 async function main(): Promise<void> {
   await seedPermissions();
+  console.log("Seeded permissions.");
   const roleIds = await seedRoles();
+  console.log("Seeded system roles with their permissions.");
   const demoTenant = await seedDemoTenant();
   await seedDemoUsers(roleIds, demoTenant);
 }

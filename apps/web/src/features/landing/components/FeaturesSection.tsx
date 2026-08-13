@@ -64,9 +64,9 @@ export function FeaturesSection() {
       >
         {FEATURES.map((feature) => (
           <motion.div key={feature.title} variants={staggerItem}>
-            <Card className="h-full">
+            <Card className="group h-full transition-[transform,box-shadow,border-color] duration-normal ease-standard hover:-translate-y-1 hover:border-primary/40 hover:shadow-md">
               <CardContent className="flex flex-col gap-4 p-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 transition-colors duration-normal group-hover:bg-primary/15">
                   <feature.icon className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
                 <div className="flex flex-col gap-1.5">

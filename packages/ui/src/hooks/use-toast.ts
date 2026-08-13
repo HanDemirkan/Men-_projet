@@ -13,7 +13,7 @@ export interface ToastItem {
   variant?: ToastProps["variant"];
 }
 
-type ToastInput = Omit<ToastItem, "id">;
+type ToastInput = Omit<ToastItem, "id"> & { id?: string };
 
 // Minimal module-level store (no context provider needed) so `toast()` can be
 // called from anywhere - event handlers, effects - not just inside a
@@ -26,9 +26,18 @@ function emit(): void {
   listeners.forEach((listener) => listener(toasts));
 }
 
+// Passing `id` lets a caller update an existing toast in place (e.g. repeated
+// identical login failures) instead of stacking a new one on every call.
 export function toast(input: ToastInput): { id: string; dismiss: () => void } {
-  const id = crypto.randomUUID();
-  toasts = [...toasts, { ...input, id }];
+  const { id: inputId, ...rest } = input;
+  const existingIndex = inputId ? toasts.findIndex((item) => item.id === inputId) : -1;
+  const id = inputId ?? crypto.randomUUID();
+
+  if (existingIndex >= 0) {
+    toasts = toasts.map((item, index) => (index === existingIndex ? { ...rest, id } : item));
+  } else {
+    toasts = [...toasts, { ...rest, id }];
+  }
   emit();
 
   return {

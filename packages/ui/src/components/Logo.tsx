@@ -41,7 +41,7 @@ export function Logo({ size = "md", iconOnly = false, className }: LogoProps) {
         // Color intentionally inherited (not `text-foreground`), so a
         // wrapper can recolor the wordmark for dark surfaces (e.g.
         // AuthLayout's brand panel) without an arbitrary-selector hack.
-        <span className={cn("font-semibold tracking-tight", TEXT_SIZE_CLASSES[size])}>
+        <span className={cn("font-heading font-semibold tracking-tight", TEXT_SIZE_CLASSES[size])}>
           QR Platform
         </span>
       )}

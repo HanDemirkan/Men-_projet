@@ -19,6 +19,7 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
+    "bootstrap:admin": "ts-node --transpile-only --project prisma/tsconfig.seed.json prisma/bootstrap-admin.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {
@@ -26,11 +27,11 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@qr-platform/permissions": "workspace:*",
     "argon2": "^0.41.1"
   },
   "devDependencies": {
     "@qr-platform/config": "workspace:*",
-    "@qr-platform/permissions": "workspace:*",
     "@types/node": "^22.10.2",
     "eslint": "^9.17.0",
     "prisma": "^5.22.0",

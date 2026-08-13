@@ -15,6 +15,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        heading: ["var(--font-sora)", "var(--font-inter)", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -65,6 +66,22 @@ const config: Config = {
         xs: "0 1px 2px 0 rgb(0 0 0 / 0.04)",
         sm: "0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)",
         md: "0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05)",
+      },
+      // Same numbers as packages/ui/src/motion/tokens.ts (duration/easing) -
+      // that file drives Framer Motion (JS), these drive Tailwind's
+      // transition-*/animate-* utility classes (CSS, e.g. Dialog/Drawer/
+      // Toast's data-state animations) - two runtimes, one set of values.
+      // See Sprint 6. `slow` capped at 220ms in Sprint 8 - see that file's
+      // own comment for why.
+      transitionDuration: {
+        fast: "150ms",
+        normal: "200ms",
+        slow: "220ms",
+      },
+      transitionTimingFunction: {
+        standard: "cubic-bezier(0.4, 0, 0.2, 1)",
+        enter: "cubic-bezier(0.16, 1, 0.3, 1)",
+        exit: "cubic-bezier(0.4, 0, 1, 1)",
       },
       keyframes: {
         "accordion-down": {

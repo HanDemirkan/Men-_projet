@@ -43,7 +43,7 @@ export function FaqSection() {
                 className="grid overflow-hidden transition-[grid-template-rows]"
                 style={{
                   gridTemplateRows: isOpen ? "1fr" : "0fr",
-                  transitionDuration: `${MOTION_DURATION.base * 1000}ms`,
+                  transitionDuration: `${MOTION_DURATION.normal * 1000}ms`,
                 }}
               >
                 <div className="overflow-hidden">

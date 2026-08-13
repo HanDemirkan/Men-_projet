@@ -14,7 +14,47 @@ import { getCurrentTenantId } from "./tenant-context";
 // tenant-scoped filtering those two need is done explicitly, case by case.
 // `User` is excluded because a user is a global identity, not tenant-owned
 // data; tenant-scoped access to a user always goes through `TenantUser`.
-const TENANT_SCOPED_MODELS = new Set(["Branch", "TenantUser"]);
+// `Tenant` itself is excluded (it IS the tenant, not tenant-owned data) -
+// business-profile code filters by id via `CurrentTenant()` directly.
+//
+// Sprint 3A adds every Business Profile / Menu domain model here - see ADR
+// 0008. `Media`'s public file-streaming endpoints are the one documented
+// exception, using the raw `prisma` export instead (no tenant context
+// exists for an anonymous request) - same pattern as AuditService/
+// IdentityService in ADR 0007.
+//
+// Sprint 5 adds `StorefrontView` - PublicStorefrontContextMiddleware already
+// establishes real tenant context (resolved from the URL's :tenantSlug, see
+// ADR 0009) for every public storefront request, so its view-tracking insert
+// goes through tenantScopedPrisma like any other tenant-owned write, not the
+// Media-style raw-prisma exception.
+//
+// Sprint 7 adds `TenantStorefrontConfig` (its `tenantId` field IS the @id,
+// which this scoping mechanism handles the same as any other tenantId field
+// - findUnique/upsert/create all key off it correctly) and
+// `StorefrontConfigRevision`, extracted off Tenant for the template rewrite.
+// Also adds `TenantSlugAlias` (QR permanence) - listed here for authenticated
+// tenant-scoped access (e.g. a future "redirect history" panel), but its one
+// public-facing lookup (resolving an unknown incoming slug to a tenant, in
+// PublicStorefrontContextMiddleware) necessarily happens *before* any tenant
+// context exists, so that one read goes through the raw `prisma` export
+// instead - same documented exception as the public Tenant lookup right next
+// to it (see ADR 0009).
+const TENANT_SCOPED_MODELS = new Set([
+  "Branch",
+  "TenantUser",
+  "Media",
+  "Menu",
+  "Category",
+  "Product",
+  "Variant",
+  "OptionGroup",
+  "Option",
+  "StorefrontView",
+  "TenantStorefrontConfig",
+  "StorefrontConfigRevision",
+  "TenantSlugAlias",
+]);
 
 const WHERE_OPERATIONS = new Set([
   "findUnique",

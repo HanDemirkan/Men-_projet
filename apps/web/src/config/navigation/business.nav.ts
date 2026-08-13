@@ -1,9 +1,15 @@
 import type { NavSection } from "@qr-platform/ui";
 import {
-  BarChart3,
+  Activity,
+  Image as ImageIcon,
   LayoutDashboard,
+  ListTree,
+  QrCode,
+  Search,
   Settings,
+  SlidersHorizontal,
   Store,
+  Tag,
   UserCog,
   UtensilsCrossed,
 } from "lucide-react";
@@ -15,15 +21,28 @@ export const BUSINESS_NAV: NavSection[] = [
     items: [{ label: "Genel Bakış", href: ROUTES.business, icon: LayoutDashboard }],
   },
   {
-    title: "İşletme",
+    title: "Menü",
     items: [
-      { label: "Menü Yönetimi", href: `${ROUTES.business}#menu`, icon: UtensilsCrossed },
-      { label: "Şubeler", href: `${ROUTES.business}#branches`, icon: Store },
-      { label: "Personel", href: `${ROUTES.business}#staff`, icon: UserCog },
-      { label: "Raporlar", href: `${ROUTES.business}#reports`, icon: BarChart3 },
+      { label: "Menüler", href: ROUTES.businessMenus, icon: UtensilsCrossed },
+      { label: "Kategoriler", href: ROUTES.businessCategories, icon: ListTree },
+      { label: "Ürünler", href: ROUTES.businessProducts, icon: Tag },
+      { label: "Medya Kütüphanesi", href: ROUTES.businessMedia, icon: ImageIcon },
+      { label: "Arama", href: ROUTES.businessSearch, icon: Search },
     ],
   },
   {
-    items: [{ label: "Ayarlar", href: `${ROUTES.business}#settings`, icon: Settings }],
+    title: "İşletme",
+    items: [
+      { label: "Şubeler", href: ROUTES.businessBranches, icon: Store },
+      { label: "Personel", href: ROUTES.businessUsers, icon: UserCog },
+      { label: "Aktivite", href: ROUTES.businessActivity, icon: Activity },
+    ],
+  },
+  {
+    items: [
+      { label: "İşletme Profili", href: ROUTES.businessProfile, icon: Settings },
+      { label: "QR & Storefront", href: ROUTES.businessStorefront, icon: QrCode },
+      { label: "Ayarlar", href: ROUTES.businessSettings, icon: SlidersHorizontal },
+    ],
   },
 ];

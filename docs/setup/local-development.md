@@ -58,7 +58,7 @@ New-Item -ItemType Directory -Force -Path C:\qr-platform-data\storage
 
 ```bash
 pnpm dev            # web + api + worker, hepsi birden (Turborepo)
-pnpm dev:web        # yalnızca web (http://localhost:3000)
+pnpm dev:web        # yalnızca web (http://localhost:3001)
 pnpm dev:api        # yalnızca api (http://localhost:4000)
 pnpm dev:worker     # yalnızca worker
 ```
@@ -67,7 +67,7 @@ Bu komutlar `.env.development` dosyasını otomatik yükler (kök `package.json`
 
 Servisler ayağa kalktıktan sonra:
 
-- Web: http://localhost:3000
+- Web: http://localhost:3001 (development varsayılanı; production'da 3000)
 - API: http://localhost:4000/api/v1/health, `/health/live`, `/health/ready`
 - Worker (iç sağlık ucu): http://localhost:4100/health
 

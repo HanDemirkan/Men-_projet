@@ -26,6 +26,7 @@ out/
 coverage/
 playwright-report/
 test-results/
+lighthouse-report/
 
 # Prisma
 packages/database/generated/

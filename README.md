@@ -37,15 +37,18 @@ git clone <repo-url> qr-platform
 cd qr-platform
 cp .env.development.example .env.development
 pnpm install
-pnpm db:migrate
+pnpm db:migrate:deploy
+pnpm bootstrap:admin
 pnpm dev
 ```
 
-`.env.development` dosyasındaki değerleri kendi ortamınıza göre düzenleyin (özellikle `POSTGRES_PASSWORD`, `DATABASE_URL`, `STORAGE_DIR`). Gerçek `.env*` dosyaları asla Git'e eklenmez.
+`.env.development` dosyasındaki değerleri kendi ortamınıza göre düzenleyin (özellikle `POSTGRES_PASSWORD`, `DATABASE_URL`, `STORAGE_DIR`, `BOOTSTRAP_ADMIN_*`). Gerçek `.env*` dosyaları asla Git'e eklenmez.
+
+`pnpm bootstrap:admin`, platformun ilk (ve tek) `SUPER_ADMIN` hesabını `BOOTSTRAP_ADMIN_NAME`/`BOOTSTRAP_ADMIN_EMAIL`/`BOOTSTRAP_ADMIN_PASSWORD`'dan oluşturur — idempotent'tir, ikinci kez çalıştırıldığında yeni bir hesap oluşturmaz. Ayrıntı için [`## Super Admin bootstrap`](#super-admin-bootstrap) bölümüne bakın. Yerel geliştirmede `pnpm db:migrate` (etkileşimli) de kullanılabilir; yukarıdaki `pnpm db:migrate:deploy`, gerçek sunucu kurulum sırasını birebir yansıtması için tercih edildi.
 
 Servisler ayağa kalktıktan sonra:
 
-- Web: http://localhost:3000
+- Web: http://localhost:3001 (development varsayılanı 3001'dir - Next.js'in olağan 3000 portu, bu makinede başka bir projeyle çakışabileceği için development'ta kullanılmaz; production'da web hâlâ 3000'de çalışır, bkz. [`## Port bilgileri`](#port-bilgileri))
 - API: http://localhost:4000/api/v1/health (birleşik durum), `/health/live`, `/health/ready`
 - Worker (iç sağlık ucu): http://localhost:4100/health
 
@@ -77,6 +80,34 @@ Servisler ayağa kalktıktan sonra:
 
 Production migration akışı için: [`docs/setup/postgresql.md`](docs/setup/postgresql.md).
 
+## Super Admin bootstrap
+
+Sistem ilk kurulduğunda giriş yapılabilecek hiçbir hesap yoktur — `prisma/seed.ts` yalnızca yerel geliştirme için sahte bir tenant + 7 sahte kullanıcı (paylaşılan, açıkça dokümante edilmiş bir şifreyle) oluşturur ve production'da **kullanılmamalıdır**. Gerçek platform sahibi hesabı için:
+
+```bash
+pnpm bootstrap:admin
+```
+
+Bu komut:
+
+1. `BOOTSTRAP_ADMIN_NAME`, `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` ortam değişkenlerini okur (bkz. `.env.example`).
+2. Tüm izinleri ve `SUPER_ADMIN` dahil sistem rollerini eksikse oluşturur (`prisma/seed.ts` ile aynı, paylaşılan mantık — `packages/database/src/admin-bootstrap.ts`).
+3. İlk kullanıcıyı oluşturur, şifreyi Argon2id ile hash'ler (asla düz metin saklanmaz) ve platform-seviyeli (`tenantId: null`) bir `SUPER_ADMIN` üyeliğiyle ilişkilendirir.
+
+**İdempotent**: ikinci kez çalıştırıldığında, aynı e-posta zaten bir `SUPER_ADMIN` üyeliğine sahipse hiçbir yeni kayıt oluşturulmaz ve mevcut hesabın şifresi **değiştirilmez** — yalnızca bilgilendirici bir mesaj basılır:
+
+```
+✓ Super Admin created (admin@example.com)
+```
+
+veya
+
+```
+✓ Super Admin already exists (admin@example.com)
+```
+
+Şifre hiçbir çıktıda, hata mesajında veya logda görünmez. Doğrulama kuralları: e-posta biçimi geçerli olmalı, şifre en az 8 karakter olup en az bir harf ve bir rakam içermelidir (auth modülündeki şifre sıfırlama kurallarıyla birebir aynı — bkz. `apps/api/src/modules/auth/dto/reset-password.dto.ts`).
+
 ## Test komutları
 
 | Komut               | Kapsam                                                  |
@@ -106,13 +137,13 @@ Sıfırdan bir Ubuntu sunucusuna kurulum için: [`docs/setup/production-ubuntu.m
 
 ## Port bilgileri
 
-| Servis                 | Varsayılan port | Değişken                |
-| ---------------------- | --------------- | ----------------------- |
-| Web                    | 3000            | `WEB_PORT`              |
-| API                    | 4000            | `API_PORT`              |
-| Worker (iç sağlık ucu) | 4100            | `WORKER_PORT`           |
-| PostgreSQL             | 5432            | `POSTGRES_PORT`         |
-| Redis / Memurai        | 6379            | (bağlantı: `REDIS_URL`) |
+| Servis                 | Varsayılan port          | Değişken                |
+| ---------------------- | ------------------------ | ----------------------- |
+| Web                    | 3001 (dev) / 3000 (prod) | `WEB_PORT`              |
+| API                    | 4000                     | `API_PORT`              |
+| Worker (iç sağlık ucu) | 4100                     | `WORKER_PORT`           |
+| PostgreSQL             | 5432                     | `POSTGRES_PORT`         |
+| Redis / Memurai        | 6379                     | (bağlantı: `REDIS_URL`) |
 
 Production'da Nginx 80/443'te dinler ve `/api/` isteklerini API'ye, geri kalanını web'e yönlendirir (bkz. [`docs/setup/nginx.md`](docs/setup/nginx.md)).
 

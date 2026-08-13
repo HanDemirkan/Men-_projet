@@ -11,6 +11,8 @@ export const apiEnvSchema = envSchema
   .pick({
     NODE_ENV: true,
     API_PORT: true,
+    API_HOST: true,
+    WORKER_PORT: true,
     DATABASE_URL: true,
     REDIS_URL: true,
     STORAGE_DIR: true,
@@ -18,9 +20,15 @@ export const apiEnvSchema = envSchema
     STORAGE_ALLOWED_MIME_TYPES: true,
     RATE_LIMIT_TTL_SECONDS: true,
     RATE_LIMIT_MAX_REQUESTS: true,
+    JWT_ACCESS_SECRET: true,
+    WEB_APP_URL: true,
+    PUBLIC_APP_URL: true,
     CORS_ALLOWED_ORIGINS: true,
     LOG_LEVEL: true,
     REQUEST_BODY_LIMIT: true,
+    DEV_ADMIN_NAME: true,
+    DEV_ADMIN_EMAIL: true,
+    DEV_ADMIN_PASSWORD: true,
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV !== "production") {

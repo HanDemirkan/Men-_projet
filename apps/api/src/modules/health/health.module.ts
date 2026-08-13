@@ -67,5 +67,7 @@ class DatabaseConnectionsLifecycle implements OnApplicationShutdown {
         new DatabaseConnectionsLifecycle(redis, logger),
     },
   ],
+  // AdminSystemService reuses this instead of re-implementing DB/Redis checks.
+  exports: [HealthService],
 })
 export class HealthModule {}

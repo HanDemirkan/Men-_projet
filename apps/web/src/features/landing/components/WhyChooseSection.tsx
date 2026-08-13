@@ -53,9 +53,9 @@ export function WhyChooseSection() {
             <motion.div
               key={reason.title}
               variants={staggerItem}
-              className="flex flex-col items-center gap-3 text-center"
+              className="group flex flex-col items-center gap-3 text-center"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-xs">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-xs transition-[transform,box-shadow] duration-normal ease-standard group-hover:-translate-y-0.5 group-hover:shadow-sm">
                 <reason.icon className="h-5 w-5 text-primary" aria-hidden="true" />
               </div>
               <h3 className="text-base font-semibold text-foreground">{reason.title}</h3>

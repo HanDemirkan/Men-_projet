@@ -1,9 +1,11 @@
 process.env["NODE_ENV"] = "test";
 process.env["DATABASE_URL"] = "postgresql://user:pass@localhost:5432/test_db";
 process.env["REDIS_URL"] = "redis://localhost:6379";
+process.env["STORAGE_DIR"] = "/tmp/qr-platform-test-storage";
 process.env["CORS_ALLOWED_ORIGINS"] = "http://localhost:3000";
 process.env["LOG_LEVEL"] = "error";
 process.env["REQUEST_BODY_LIMIT"] = "1mb";
+process.env["JWT_ACCESS_SECRET"] = "e2e-test-secret-at-least-32-characters-long";
 
 /* eslint-disable import/order -- env vars above must be set before app modules are imported */
 import { INestApplication, ValidationPipe } from "@nestjs/common";

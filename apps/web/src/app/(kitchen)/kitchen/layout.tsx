@@ -2,7 +2,9 @@ import { ROLES } from "@qr-platform/permissions";
 import type { ReactNode } from "react";
 
 import { PanelLayout } from "@/layouts/PanelLayout";
+import { requireUser } from "@/lib/auth/require-user";
 
-export default function KitchenRouteLayout({ children }: { children: ReactNode }) {
-  return <PanelLayout role={ROLES.KITCHEN}>{children}</PanelLayout>;
+export default async function KitchenRouteLayout({ children }: { children: ReactNode }) {
+  const user = await requireUser([ROLES.KITCHEN]);
+  return <PanelLayout user={user}>{children}</PanelLayout>;
 }

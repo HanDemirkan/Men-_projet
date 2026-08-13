@@ -36,14 +36,20 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         </p>
       </div>
 
-      <div className="flex flex-col items-center justify-center px-6 py-12 sm:px-12">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex flex-col items-center justify-center px-6 py-12 sm:px-12"
+      >
         <div className="mb-10 lg:hidden">
           <Link href={ROUTES.home}>
             <Logo size="md" />
           </Link>
         </div>
+        {/* Sprint 8: no opacity-gated page-wide entrance - see PanelLayout's
+            comment for why (perceived latency + Lighthouse NO_FCP risk). */}
         <div className="w-full max-w-sm">{children}</div>
-      </div>
+      </main>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import type { NavSection } from "@qr-platform/ui";
-import { Building2, CreditCard, LayoutDashboard, LifeBuoy, Settings, Users } from "lucide-react";
+import { Building2, ClipboardList, CreditCard, LayoutDashboard, LifeBuoy, Settings, Users } from "lucide-react";
 
 import { ROUTES } from "@/config/routes";
 
@@ -10,13 +10,16 @@ export const ADMIN_NAV: NavSection[] = [
   {
     title: "Platform",
     items: [
-      { label: "İşletmeler", href: `${ROUTES.admin}#tenants`, icon: Building2 },
-      { label: "Kullanıcılar", href: `${ROUTES.admin}#users`, icon: Users },
-      { label: "Faturalandırma", href: `${ROUTES.admin}#billing`, icon: CreditCard },
-      { label: "Destek Talepleri", href: `${ROUTES.admin}#support`, icon: LifeBuoy, badge: "6" },
+      { label: "İşletmeler", href: ROUTES.adminTenants, icon: Building2 },
+      { label: "Kullanıcılar", href: ROUTES.adminUsers, icon: Users },
+      { label: "Audit Log", href: ROUTES.adminAuditLogs, icon: ClipboardList },
+      // Billing/support have no real backing domain yet - shown as disabled
+      // rather than removed, so it's clear they're planned, not missing.
+      { label: "Faturalandırma", href: ROUTES.admin, icon: CreditCard, badge: "Yakında", disabled: true },
+      { label: "Destek Talepleri", href: ROUTES.adminSupport, icon: LifeBuoy },
     ],
   },
   {
-    items: [{ label: "Sistem Ayarları", href: `${ROUTES.admin}#settings`, icon: Settings }],
+    items: [{ label: "Sistem Durumu", href: ROUTES.adminSystem, icon: Settings }],
   },
 ];

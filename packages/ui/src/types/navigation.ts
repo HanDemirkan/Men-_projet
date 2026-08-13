@@ -6,6 +6,10 @@ export interface NavItem {
   href: string;
   icon: LucideIcon;
   badge?: string;
+  // Renders the item as inert text (no link, no click) with its badge as a
+  // muted pill - for features that don't exist yet ("Yakında") rather than
+  // a link that goes nowhere real.
+  disabled?: boolean;
 }
 
 export interface NavSection {
@@ -21,4 +25,5 @@ export type LinkComponent = (props: {
   className?: string;
   children: ReactNode;
   onClick?: () => void;
+  "aria-label"?: string;
 }) => JSX.Element;

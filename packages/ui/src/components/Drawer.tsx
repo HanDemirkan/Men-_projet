@@ -17,7 +17,7 @@ const DrawerOverlay = forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-foreground/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-foreground/50 duration-normal ease-standard data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-fast data-[state=closed]:ease-exit data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
     {...props}
@@ -25,20 +25,23 @@ const DrawerOverlay = forwardRef<
 ));
 DrawerOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-const drawerContentVariants = cva("fixed z-50 flex flex-col gap-4 bg-background p-6 shadow-md", {
-  variants: {
-    side: {
-      left: "inset-y-0 left-0 h-full w-full max-w-xs border-r border-border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
-      right:
-        "inset-y-0 right-0 h-full w-full max-w-xs border-l border-border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
-      bottom:
-        "inset-x-0 bottom-0 max-h-[85vh] rounded-t-lg border-t border-border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+const drawerContentVariants = cva(
+  "fixed z-50 flex flex-col gap-4 bg-background p-6 shadow-md duration-normal ease-enter data-[state=closed]:duration-fast data-[state=closed]:ease-exit",
+  {
+    variants: {
+      side: {
+        left: "inset-y-0 left-0 h-full w-full max-w-xs border-r border-border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
+        right:
+          "inset-y-0 right-0 h-full w-full max-w-xs border-l border-border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+        bottom:
+          "inset-x-0 bottom-0 max-h-[85vh] rounded-t-lg border-t border-border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+      },
+    },
+    defaultVariants: {
+      side: "right",
     },
   },
-  defaultVariants: {
-    side: "right",
-  },
-});
+);
 
 export interface DrawerContentProps
   extends
