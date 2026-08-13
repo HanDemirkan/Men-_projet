@@ -11,12 +11,12 @@ interface StorefrontHomePageProps {
 
 // The QR destination is the tenant root URL and must open the actual menu
 // immediately. Previously this route rendered a lightweight "home" shell
-// with only menu names, forcing a second tap before products appeared. That
-// made a QR scan feel unfinished and made the real storefront differ from
-// the approved Design Review. The root now uses the same full menu payload
-// and renderer as /menu while keeping the permanent, short QR URL stable.
+// with only menu names, forcing a second tap before products appeared. The
+// root now uses the same full menu payload and renderer as /menu while
+// keeping the permanent, short QR URL stable.
 export default async function StorefrontHomePage({ params, searchParams }: StorefrontHomePageProps) {
-  const result = await publicFetch<StorefrontMenuPage>(`/storefront/${params.tenantSlug}/menu`);
+  const qrSource = searchParams.src === "qr" ? "?src=qr" : "";
+  const result = await publicFetch<StorefrontMenuPage>(`/storefront/${params.tenantSlug}/menu${qrSource}`);
 
   if (result.status === "redirect") {
     permanentRedirect(withSearch(`/${result.targetSlug}`, searchParams));
